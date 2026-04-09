@@ -35,3 +35,5 @@ Thumbs.db
 # Your project
 last_uid.txt
 __pycache__/
+
+#gitignore file for Lead-Filter project, ignoring sensitive and unnecessary files
