@@ -2,16 +2,15 @@ from fastapi import Depends, FastAPI
 from groq import Groq
 import os
 import json
-from imap_worker import send_email
+from email_utils import send_email
 
-from database import  get_db
+from database import get_db, Base, engine
 from config import save_lead
-import schemas,models
+import models, schema
 from sqlalchemy.orm import Session
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-import os
-from database import Base, engine
+
 Base.metadata.create_all(bind=engine)
 
 load_dotenv()
@@ -27,39 +26,55 @@ app = FastAPI()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
+
 def call_llm(prompt: str):
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0
+        temperature=0,
     )
     return response.choices[0].message.content.strip()
 
 
-
 def is_business_inquiry(message: str):
     message = message.strip()
-    
+
     if not message or len(message) < 10:
         return False, "Empty or too short (less than 10 chars)"
-    
+
     message_lower = message.lower()
-    
+
     spam_patterns = [
-        "unsubscribe", "newsletter", "digest", "weekly update",
-        "password reset", "verify your", "confirm your",
-        "receipt", "invoice", "order confirmation",
-        "track your", "shipping", "delivery",
-        "no-reply", "noreply", "do-not-reply",
-        "linkedin", "twitter notification", "facebook alert",
-        "mailer-daemon", "delivery status", "failure notice"
+        "unsubscribe",
+        "newsletter",
+        "digest",
+        "weekly update",
+        "password reset",
+        "verify your",
+        "confirm your",
+        "receipt",
+        "invoice",
+        "order confirmation",
+        "track your",
+        "shipping",
+        "delivery",
+        "no-reply",
+        "noreply",
+        "do-not-reply",
+        "linkedin",
+        "twitter notification",
+        "facebook alert",
+        "mailer-daemon",
+        "delivery status",
+        "failure notice",
     ]
-    
+
     for pattern in spam_patterns:
         if pattern in message_lower:
             return False, f"Spam/newsletter detected: '{pattern}'"
-    
+
     return "uncertain", "Need AI to determine"
+
 
 def ai_intent_filter(message: str):
     prompt = f"""
@@ -74,57 +89,66 @@ def ai_intent_filter(message: str):
     
     Message: {message}
     """
-    
+
     try:
         response = call_llm(prompt)
         response = response.replace("```json", "").replace("```", "").strip()
         result = json.loads(response)
-        
+
         if result.get("is_inquiry"):
             return True, f"AI: {result.get('reason')}"
         else:
             return False, f"AI rejected: {result.get('reason')}"
-            
+
     except Exception as e:
         return True, f"AI error ({e}), processing to be safe"
 
+
 @app.post("/lead")
-def process_lead(lead: schemas.LeadInput,db: Session = Depends(get_db)):
+def process_lead(lead: schema.LeadInput, db: Session = Depends(get_db)):
     try:
         message = lead.message.strip()
-        
+
         filter_result, filter_reason = is_business_inquiry(message)
-        
+
         if filter_result == False:
             print(f"REJECTED ({filter_reason}): {lead.email}")
             return {
-                "analysis": {"intent": "filtered_out", "budget": None, "urgency": "low"},
+                "analysis": {
+                    "intent": "filtered_out",
+                    "budget": None,
+                    "urgency": "low",
+                },
                 "score": 0,
                 "decision": "ignore",
                 "action": "do_nothing",
                 "response": "",
-                "filter_reason": filter_reason
+                "filter_reason": filter_reason,
             }
-        
+
         if filter_result == "uncertain":
             print(f"Uncertain, using AI filter for: {lead.email}")
             is_inquiry, ai_reason = ai_intent_filter(message)
-            
+
             if not is_inquiry:
                 print(f"AI REJECTED ({ai_reason}): {lead.email}")
                 return {
-                    "analysis": {"intent": "filtered_out", "budget": None, "urgency": "low"},
+                    "analysis": {
+                        "intent": "filtered_out",
+                        "budget": None,
+                        "urgency": "low",
+                    },
                     "score": 0,
                     "decision": "ignore",
                     "action": "do_nothing",
                     "response": "",
-                    "filter_reason": ai_reason
+                    "filter_reason": ai_reason,
                 }
-            
+
             print(f"AI ACCEPTED: {lead.email}")
-        
+
         print(f"Processing qualified lead: {lead.email}")
-        
+
         prompt = f"""
         You are an AI extraction system.
 
@@ -211,7 +235,7 @@ def process_lead(lead: schemas.LeadInput,db: Session = Depends(get_db)):
 
         if not parsed.get("intent") or parsed["intent"] == "unknown":
             decision = "ask_more"
-        
+
         elif budget is not None:
             if budget < 300:
                 decision = "reject"
@@ -276,7 +300,7 @@ LeadGate AI"""
             """
 
             response_text = call_llm(followup_prompt)
-            
+
             email_body = f"""Hi {lead.name},
 
 {response_text}
@@ -286,8 +310,10 @@ LeadGate AI"""
             send_email(lead.email, "A few questions about your project", email_body)
 
         else:
-            response_text = "Thank you for reaching out. At the moment, this is not the right fit."
-            
+            response_text = (
+                "Thank you for reaching out. At the moment, this is not the right fit."
+            )
+
             email_body = f"""Hi {lead.name},
 
 {response_text}
@@ -304,33 +330,32 @@ LeadGate AI"""
             "decision": decision,
             "action": action,
             "response_text": response_text,
-            "raw_analysis": parsed
+            "raw_analysis": parsed,
         }
-        save_lead(db,lead_data)
-        
+        save_lead(db, lead_data)
+
         return {
             "analysis": parsed,
             "score": score,
             "decision": decision,
             "action": action,
-            "response": response_text
+            "response": response_text,
         }
 
     except Exception as e:
         return {
-            "analysis": {
-                "intent": "unknown",
-                "budget": None,
-                "urgency": "low"
-            },
+            "analysis": {"intent": "unknown", "budget": None, "urgency": "low"},
             "score": 1,
             "decision": "reject",
             "action": "send_rejection",
             "response": "Something went wrong while processing the request.",
-            "error": str(e)
+            "error": str(e),
         }
 
-@app.get("/leads", response_model=list[schemas.LeadResponse])
+
+@app.get("/leads", response_model=list[schema.LeadResponse])
 def get_leads(db: Session = Depends(get_db)):
-    leads = db.query(models.Lead).order_by(models.Lead.created_at.desc()).limit(10).all()
+    leads = (
+        db.query(models.Lead).order_by(models.Lead.created_at.desc()).limit(10).all()
+    )
     return leads

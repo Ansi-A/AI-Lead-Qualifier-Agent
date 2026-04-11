@@ -1,10 +1,11 @@
 from database import Base
-from sqlalchemy import  Column, Integer, String, Text, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
 from datetime import datetime, timedelta, timezone
+
 
 class Lead(Base):
     __tablename__ = "leads"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False)

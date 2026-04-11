@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 import models
 
+
 def save_lead(db: Session, lead_data: dict):
     db_lead = models.Lead(**lead_data)
     db.add(db_lead)
