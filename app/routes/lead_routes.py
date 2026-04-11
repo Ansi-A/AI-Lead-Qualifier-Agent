@@ -87,9 +87,8 @@ def process_lead(
             "error": str(e)
         }
 
-
-@router.get("/", response_model=List[LeadResponse])
+#get leads
+@router.get("/s", response_model=List[LeadResponse])
 def get_leads(db: Session = Depends(get_db)):
-    """Get recent leads"""
     from ..services.lead_service import get_recent_leads
     return get_recent_leads(db)
