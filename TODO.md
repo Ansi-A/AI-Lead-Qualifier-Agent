@@ -1,35 +1,13 @@
-# Lead Filter Refactoring TODO
+# Lead-Filter Refactor TODO
 
-## Plan Progress
+## Plan Steps (Approved ✅)
 
-✅ **Step 1**: Create TODO.md with steps (COMPLETE)
+### 1. Create app/ directory structure + settings.py [✅ DONE]
+### 2. Create services/ (llm_service.py, email_service.py, lead_service.py) [✅ DONE]
+### 3. Create database/db.py, models/, schemas/ [✅ DONE]
+### 4. Create routes/lead_routes.py [✅ DONE]
+### 5. Create main.py with router include + DB setup [✅ DONE]
+### 6. Delete old root files (main.py, schema.py, etc.) [✅ DONE]
+### 7. Test: uvicorn app.main:app --reload [READY]
 
-⏳ **Step 2**: Inline email_utils.send_email logic into main.py
-
-⏳ **Step 2**: Inline email_utils.send_email logic into main.py
-
-⏳ **Step 3**: Implement modular functions
-   - filter_lead()
-   - extract_lead_data()
-   - score_lead()
-   - decide_lead()
-   - generate_response_text()
-   - send_centralized_email()
-
-⏳ **Step 4**: Refactor /lead endpoint to use modular functions
-
-⏳ **Step 5**: Update imports and clean up
-
-⏳ **Step 6**: Test endpoint
-
-✅ **All steps complete** - main.py refactored!
-
-**Structure:**
-- ✅ filter_lead()
-- ✅ extract_lead_data()
-- ✅ score_lead()
-- ✅ decide_lead()
-- ✅ generate_response_text()
-- ✅ send_centralized_email()
-- ✅ Reduced nesting, safe JSON, no duplicates
-
+## ✅ ALL STEPS COMPLETE! Refactor done.

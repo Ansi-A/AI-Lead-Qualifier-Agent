@@ -6,9 +6,10 @@ import smtplib
 from email.message import EmailMessage
 from typing import Dict, Any, Optional, Tuple, List
 
-from database import get_db, Base, engine
-from config import save_lead
-import models, schema
+from app.database import get_db, Base, engine
+from app.config import save_lead
+from app.schemas import lead_schema as schema
+from app.models import Lead
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
@@ -295,4 +296,4 @@ def process_lead(
 @app.get("/leads", response_model=list[schema.LeadResponse])
 def get_leads(db: Session = Depends(get_db)):
     """Get recent leads"""
-    return db.query(models.Lead).order_by(models.Lead.created_at.desc()).limit(10).all()
+    return db.query(Lead).order_by(Lead.created_at.desc()).limit(10).all()

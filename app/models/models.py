@@ -1,6 +1,6 @@
-from database import Base
+from ..database.db import Base
 from sqlalchemy import Column, Integer, String, Text, DateTime, JSON
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 
 class Lead(Base):

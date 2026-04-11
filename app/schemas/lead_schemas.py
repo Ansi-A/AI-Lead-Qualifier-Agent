@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 
 class LeadInput(BaseModel):
@@ -13,11 +14,10 @@ class LeadResponse(BaseModel):
     name: str
     email: str
     message: str
-    score: int
-    decision: str
-    action: str
-    response_text: str
+    score: Optional[int]
+    decision: Optional[str]
+    action: Optional[str]
+    response_text: Optional[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
