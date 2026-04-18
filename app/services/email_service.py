@@ -29,27 +29,27 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
 
 
 def send_centralized_email(
-    background_tasks: Optional["BackgroundTasks"], 
-    decision: str, 
-    lead_email: str, 
-    lead_name: str, 
-    response_text: str
+    background_tasks: Optional["BackgroundTasks"],
+    decision: str,
+    lead_email: str,
+    lead_name: str,
+    response_text: str,
 ):
     """Centralized email orchestration for leads"""
     subject_map = {
         "accept": "You're a great fit! Next steps",
-        "ask_more": "Quick questions about your project", 
-        "reject": "Update on your request"
+        "ask_more": "Quick questions about your project",
+        "reject": "Update on your request",
     }
     subject = subject_map.get(decision, "Lead update")
-    
+
     body = f"""Hi {lead_name},
 
 {response_text}
 
 Best,
 LeadGate AI"""
-    
+
     if background_tasks:
         background_tasks.add_task(send_email, lead_email, subject, body)
     else:

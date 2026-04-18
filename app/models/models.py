@@ -16,3 +16,20 @@ class Lead(Base):
     response_text = Column(Text)
     raw_analysis = Column(JSON)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
+
+
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, nullable=False)
+    token = Column(String(255), unique=True, nullable=False,index=True)
+    expires_at = Column(DateTime(timezone=True),nullable=False)

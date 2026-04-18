@@ -12,11 +12,28 @@ GMAIL_APP_PASSWORD: str = os.getenv("GMAIL_APP_PASSWORD")
 
 # Lead filtering constants
 SPAM_PATTERNS: List[str] = [
-    "unsubscribe", "newsletter", "digest", "weekly update", "password reset",
-    "verify your", "confirm your", "receipt", "invoice", "order confirmation",
-    "track your", "shipping", "delivery", "no-reply", "noreply", "do-not-reply",
-    "linkedin", "twitter notification", "facebook alert", "mailer-daemon",
-    "delivery status", "failure notice"
+    "unsubscribe",
+    "newsletter",
+    "digest",
+    "weekly update",
+    "password reset",
+    "verify your",
+    "confirm your",
+    "receipt",
+    "invoice",
+    "order confirmation",
+    "track your",
+    "shipping",
+    "delivery",
+    "no-reply",
+    "noreply",
+    "do-not-reply",
+    "linkedin",
+    "twitter notification",
+    "facebook alert",
+    "mailer-daemon",
+    "delivery status",
+    "failure notice",
 ]
 
 # Budget thresholds
