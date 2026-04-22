@@ -12,9 +12,9 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def create_refresh_token():
+"""def create_refresh_token():
     import secrets
     token =secrets.token_hex(16)
     hashed_token = hash_refresh_token(token)
-    return hashed_token
+    return tokenhashed_token"""
     

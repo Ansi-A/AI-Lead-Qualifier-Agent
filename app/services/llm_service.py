@@ -1,7 +1,8 @@
 from groq import Groq
 from typing import Dict, Any
 from ..config.settings import GROQ_API_KEY, LLM_FALLBACK
-
+import logging
+logger = logging.getLogger(__name__)
 
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -13,6 +14,8 @@ def call_llm(prompt: str) -> str:
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
     )
+    
+
     return response.choices[0].message.content.strip()
 
 

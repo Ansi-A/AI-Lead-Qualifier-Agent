@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
+
+from app.core.depends import get_current_user
 from ..database.db import get_db
 from ..schemas.lead_schemas import LeadInput, LeadResponse
 from fastapi import HTTPException
@@ -15,14 +17,15 @@ from ..services.email_service import send_centralized_email
 from typing import List
 
 
-router = APIRouter(prefix="/lead", tags=["leads"])
+router = APIRouter(prefix="/leads", tags=["leads"])
 
 
-@router.post("/", response_model=dict)
+@router.post("", response_model=dict)
 def process_lead(
     lead: LeadInput,
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = None,
+    user: str = Depends(get_current_user),
 ):
     try:
         print(f"Processing lead from {lead.email}")
@@ -106,8 +109,8 @@ def process_lead(
 
 
 # get leads
-@router.get("/s", response_model=List[LeadResponse])
-def get_leads(db: Session = Depends(get_db)):
+@router.get("", response_model=List[LeadResponse])
+def get_leads(db: Session = Depends(get_db), user: str = Depends(get_current_user)):
     from ..services.lead_service import get_recent_leads
 
     if not get_recent_leads:

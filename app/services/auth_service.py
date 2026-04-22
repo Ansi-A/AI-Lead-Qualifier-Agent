@@ -31,13 +31,13 @@ def create_tokens(user: User, db: Session):
     import secrets
     print("creating the accesstoken")
     print(f"this is {user.id}")
-    access_token = create_access_token({"sub": user.id})
+    access_token = create_access_token({"sub": str(user.id)})
     print(f"access token created {access_token}")
     refresh_token = secrets.token_hex(16)
     hashed_token = hash_refresh_token(refresh_token)
-    
+    print(f"user id{user.id}")
     db_token = RefreshToken(
-        user_id=user.id,
+        user_id=str(user.id),
         token=hashed_token,
         expires_at=datetime.now(timezone.utc) + timedelta(days=7),
     )

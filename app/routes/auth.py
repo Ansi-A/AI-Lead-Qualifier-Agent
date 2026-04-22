@@ -11,7 +11,9 @@ from app.schemas.user_schemas import UserCreate, UserLogin
 from app.schemas.token_schemas import TokenResponse, RefreshTokenRequest
 from app.core.hash import hash_password,verify_password,hash_refresh_token
 from app.services.auth_service import register_user, authenticate_user, create_tokens
+import logging
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,13 +25,13 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(user: UserLogin, db: Session = Depends(get_db)):
+    logger.info("login_request", extra={"email": user.email})
     db_user = authenticate_user(db, user.email, user.password)
 
     if not db_user:
-        print("db user not found--")
+        logger.warning("login_failed", extra={"email": user.email})
         raise HTTPException(status_code=400, detail="invalid credentials")
-    print(f"this is db user: {db_user}")
-    print(f"this is db user id: {db_user.id}")
+    logger.info("login_success", extra={"email": user.email, "user_id": db_user.id})
     access, refresh = create_tokens(db_user, db)
 
     return {"access_token": access, "refresh_token": refresh}
@@ -37,7 +39,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
 @router.post("/refresh")
 def refresh_token(data: RefreshTokenRequest, db: Session = Depends(get_db)):
-
+   
     hashed = hash_refresh_token(data.refresh_token)
 
     token = db.query(RefreshToken).filter(
@@ -45,6 +47,7 @@ def refresh_token(data: RefreshTokenRequest, db: Session = Depends(get_db)):
     ).first()
 
     if not token:
+        logger.warning("refresh_failed", extra={"reason": "invalid_token"})
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     if token.expires_at < datetime.now(timezone.utc):
@@ -52,6 +55,6 @@ def refresh_token(data: RefreshTokenRequest, db: Session = Depends(get_db)):
         db.commit()
         raise HTTPException(status_code=401, detail="Token expired")
 
-    access = create_access_token({"sub": token.user_id})
+    access = create_access_token({"sub": str(token.user_id)})
 
     return {"access_token": access}
