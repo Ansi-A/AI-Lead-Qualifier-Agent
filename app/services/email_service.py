@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def send_email(to_email: str, subject: str, body: str) -> bool:
     """Centralized email sending (used with BackgroundTasks)"""
     try:
-        logger.info("sending_email", extra={"to_email": to_email, "subject": subject})
+        logger.info(f"sending_email | to={to_email} subject={subject}")
         msg = EmailMessage()
         msg.set_content(body)
         msg["Subject"] = subject
@@ -28,7 +28,7 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         logger.info("email_sent", extra={"to_email": to_email, "subject": subject})
         return True
     except Exception as e:
-        logger.error("email_failed", extra={"to_email": to_email, "subject": subject, "error": str(e)})
+        logger.error(f"email_failed | to={to_email} subject={subject} error={str(e)}")
         return False
 
 
